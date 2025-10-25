@@ -331,11 +331,10 @@ class MusicAlgorithmService {
         for (let i = 0; i < tracksPerQuery; i++) {
           if (currentDuration >= targetDurationMs) break;
           
-          const duration = Math.floor(Math.random() * (300000 - 180000 + 1)) + 180000; // 3-5 minutes in ms
-          const platform = Math.random() > 0.5 ? 'youtube' : 'spotify';
+          const duration = Math.floor(Math.random() * (300000 - 180000 + 1)) + 180000;
+          const platform = 'youtube';
           const id = `${platform}_${Math.random().toString(36).substr(2, 9)}`;
           
-          // 🎵 OPTIMIERT: Realistische Künstlernamen
           const youtubeArtists = [
             'NoCopyrightSounds',
             'Monstercat',
@@ -349,24 +348,8 @@ class MusicAlgorithmService {
             'Janji'
           ];
           
-          const spotifyArtists = [
-            'League of Legends',
-            'Riot Games Music',
-            'Pentakill',
-            'K/DA',
-            'True Damage',
-            'Imagine Dragons',
-            'The Glitch Mob',
-            'Two Steps From Hell',
-            'Audiomachine',
-            'Position Music'
-          ];
+          const artist = youtubeArtists[Math.floor(Math.random() * youtubeArtists.length)];
           
-          const artist = platform === 'youtube' 
-            ? youtubeArtists[Math.floor(Math.random() * youtubeArtists.length)]
-            : spotifyArtists[Math.floor(Math.random() * spotifyArtists.length)];
-          
-          // Erstelle besseren Titel basierend auf Query
           const titleParts = query.split(' ').filter(word => 
             !['music', 'gaming', 'the', 'a', 'and', 'or'].includes(word.toLowerCase())
           );
@@ -379,13 +362,9 @@ class MusicAlgorithmService {
             artist: artist,
             duration: duration,
             platform: platform,
-            url: platform === 'youtube' ? 
-              `https://www.youtube.com/watch?v=${Math.random().toString(36).substr(2, 11)}` : 
-              `https://open.spotify.com/track/${Math.random().toString(36).substr(2, 22)}`,
+            url: `https://www.youtube.com/watch?v=${Math.random().toString(36).substr(2, 11)}`,
             previewUrl: `https://example.com/preview${Math.random().toString(36).substr(2, 9)}.mp3`,
-            thumbnail: platform === 'youtube' ? 
-              'https://via.placeholder.com/320x180' : 
-              'https://via.placeholder.com/320x320',
+            thumbnail: 'https://via.placeholder.com/320x180',
             genre: query.split(' ')[0],
             mood: query.split(' ')[1] || 'neutral',
             energy: query.includes('extreme') ? 'extreme' : 

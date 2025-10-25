@@ -22,7 +22,7 @@ class MusicService {
           q: query,
           type: 'video',
           videoCategoryId: '10', // Music category
-          relevance,
+          maxResults,
           key: process.env.YOUTUBE_API_KEY
         }
       });
@@ -51,13 +51,12 @@ class MusicService {
     try {
       if (!process.env.SPOTIFY_CLIENT_ID || !process.env.SPOTIFY_CLIENT_SECRET) {
         console.warn('Spotify API credentials not configured');
-        return this.getMockSpotifyResults(query, limit);
+        return [];
       }
 
-      // Get access token
       const accessToken = await this.getSpotifyAccessToken();
       if (!accessToken) {
-        return this.getMockSpotifyResults(query, limit);
+        return [];
       }
 
       const response = await axios.get('https://api.spotify.com/v1/search', {
@@ -86,7 +85,7 @@ class MusicService {
 
     } catch (error) {
       console.error('Spotify search error:', error);
-      return this.getMockSpotifyResults(query, limit);
+      return [];
     }
   }
 
@@ -302,25 +301,6 @@ class MusicService {
     return mockTracks;
   }
 
-  // Mock Spotify results for development
-  static getMockSpotifyResults(query, limit) {
-    const mockTracks = [
-      {
-        id: `spotify_mock_${Math.random().toString(36).substr(2, 9)}`,
-        title: `${query} - Gaming Mix`,
-        artist: 'Spotify Gaming',
-        duration: 200000 + Math.random() * 100000, // 3-5 minutes
-        platform: 'spotify',
-        url: `https://open.spotify.com/track/mock_${Math.random().toString(36).substr(2, 9)}`,
-        thumbnail: 'https://via.placeholder.com/320x320',
-        genre: this.extractGenreFromTitle(query),
-        mood: this.extractMoodFromTitle(query),
-        energy: this.extractEnergyFromTitle(query)
-      }
-    ];
-
-    return mockTracks.slice(0, limit);
-  }
 }
 
 module.exports = MusicService;
