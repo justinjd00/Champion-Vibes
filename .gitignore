@@ -24,7 +24,6 @@ yarn-error.log*
 lerna-debug.log*
 *.log
 
-# OS Files
 .DS_Store
 .DS_Store?
 ._*
@@ -33,7 +32,6 @@ lerna-debug.log*
 ehthumbs.db
 Thumbs.db
 
-# IDE
 .vscode/
 .idea/
 *.swp
@@ -43,20 +41,16 @@ Thumbs.db
 .classpath
 .settings/
 
-# Markdown Documentation (as requested)
 *.md
 !package.json
 
-# Temporary Files
 *.tmp
 *.temp
 .cache/
 
-# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Misc
 .eslintcache
 
