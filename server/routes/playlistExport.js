@@ -2,14 +2,11 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// YouTube API Configuration
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyA9K9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z9Z';
 const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID;
 const YOUTUBE_CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET;
 
-/**
- * Refresh YouTube token wenn abgelaufen
- */
+// Refresh YouTube access token using refresh token
 async function refreshYouTubeToken(req) {
   try {
     if (!req.session.youtubeRefreshToken) {
@@ -35,66 +32,50 @@ async function refreshYouTubeToken(req) {
     req.session.youtubeAccessToken = access_token;
     req.session.youtubeTokenExpiry = Date.now() + (expires_in * 1000);
     
-    console.log('✅ Token refreshed successfully');
+    console.log('Token refreshed successfully');
     return true;
   } catch (error) {
-    console.error('❌ Refresh YouTube token error:', error.response?.data || error.message);
+    console.error('Refresh YouTube token error:', error.response?.data || error.message);
     return false;
   }
 }
 
-/**
- * Generiert Such-Strategien basierend auf:
- * 1. RELEVANZ (Passgenauigkeit)
- * 2. QUALITÄT (Sortierung)
- * 3. VARIETÄT (Zeit + Länge)
- */
+// Generate multiple search strategies for better results (relevance, quality, variety)
 function generateSearchStrategies(title, artist) {
-  // Bereinige Titel und Künstler
   const cleanTitle = title.replace(/[^\w\s-]/g, '').trim();
   const cleanArtist = artist.replace(/[^\w\s-]/g, '').trim();
   const baseQuery = `${cleanTitle} ${cleanArtist} music`;
   
-  // 📅 Datum für "Letzte 6 Monate"
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   const publishedAfter = sixMonthsAgo.toISOString();
   
   return [
-    // 🔥 TAKTIK A: "Frische Hits" - Beliebte neue Songs
     {
-      name: 'Frische Hits',
+      name: 'Fresh Hits',
       query: `${baseQuery} official audio`,
       params: {
-        order: 'viewCount',          // Beliebteste zuerst
-        videoDuration: 'medium',      // 4-20 Min (einzelne Songs)
-        publishedAfter: publishedAfter // Nur letzte 6 Monate
+        order: 'viewCount',
+        videoDuration: 'medium',
+        publishedAfter: publishedAfter
       }
     },
-    
-    // 🎧 TAKTIK B: "Best Match" - Relevanteste Ergebnisse
     {
       name: 'Best Match',
       query: `${baseQuery} official`,
       params: {
-        order: 'relevance',           // YouTubes bester Algorithmus
-        videoDuration: 'medium',      // 4-20 Min
-        // Kein Zeitfilter - alle Zeiträume
+        order: 'relevance',
+        videoDuration: 'medium'
       }
     },
-    
-    // ✨ TAKTIK C: "Geheimtipps" - Hochwertige versteckte Perlen
     {
-      name: 'Geheimtipps',
+      name: 'Hidden Gems',
       query: `${baseQuery} audio`,
       params: {
-        order: 'rating',              // Best bewertet
-        videoDuration: 'any',         // Alle Längen
-        // Kein Zeitfilter
+        order: 'rating',
+        videoDuration: 'any'
       }
     },
-    
-    // 🎵 TAKTIK D: "Topic Channels" - Auto-generierte offizielle Musik
     {
       name: 'Topic',
       query: `${cleanTitle} ${cleanArtist} topic`,
@@ -106,67 +87,37 @@ function generateSearchStrategies(title, artist) {
   ];
 }
 
-/**
- * 🎯 INTELLIGENTER FILTER: Filtert unerwünschte Videos aus
- * Basierend auf Ausschluss-Keywords und Qualitäts-Indikatoren
- */
+// Filter out unwanted videos (shorts, covers, tutorials, etc.)
 function isValidMusicVideo(video) {
   const title = video.snippet.title.toLowerCase();
   const channelTitle = video.snippet.channelTitle.toLowerCase();
   const description = (video.snippet.description || '').toLowerCase();
   
-  // 🚫 AUSSCHLUSS-KEYWORDS (Hard Filter)
   const excludeKeywords = [
-    // Shorts & Clips
     '#shorts', 'short', '#short',
-    
-    // Tutorials & Reactions
     'tutorial', 'how to', 'reaction', 'react to', 'review',
-    
-    // Covers & Remixes (oft schlechter als Original)
     'cover version', 'acoustic cover', 'piano cover', 'guitar cover',
     'drum cover', 'bass cover', 'vocal cover', 'nightcore',
-    
-    // Karaoke & Lyrics-Only
     'karaoke', 'lyrics video', 'lyrics only', 'lyric video',
-    
-    // Modifizierte Versionen
     'speed up', 'sped up', 'slowed', 'reverb', '8d audio', 'bass boosted',
-    
-    // Loops & Extended
     '1 hour', '10 hours', '24 hours', 'extended', 'loop', '10h', '1h',
-    
-    // Gaming-Content (kein Musik-Video)
     'gameplay', 'fortnite', 'tiktok', 'roblox', 'minecraft',
-    
-    // Compilations & Mashups
     'compilation', 'mashup', 'megamix', 'best of 2024'
   ];
   
-  // Prüfe Ausschluss-Keywords
   for (const keyword of excludeKeywords) {
     if (title.includes(keyword)) {
-      console.log(`  ⊗ Filtered: ${video.snippet.title.substring(0, 60)}... (${keyword})`);
+      console.log(`  Filtered: ${video.snippet.title.substring(0, 60)}... (${keyword})`);
       return false;
     }
   }
   
-  // ✅ QUALITÄTS-INDIKATOREN
-  
-  // 1️⃣ Bevorzugte Musik-Kanäle (Auto-Accept)
+  // Trusted music channels
   const trustedChannels = [
-    'vevo',           // Major Label Official
-    'topic',          // YouTube Auto-Generated
-    'official',       // Official Artist Channels
-    'records',        // Record Labels
-    'ncs',            // NoCopyrightSounds
-    'nocopyrightsounds',
-    'monstercat',     // EDM Label
-    'trap nation',
-    'proximity',
-    'magic music',
-    'selected',
-    'mrsuicidesheep'
+    'vevo', 'topic', 'official', 'records',
+    'ncs', 'nocopyrightsounds', 'monstercat',
+    'trap nation', 'proximity', 'magic music',
+    'selected', 'mrsuicidesheep'
   ];
   
   const isTrustedChannel = trustedChannels.some(pattern => 
@@ -177,15 +128,10 @@ function isValidMusicVideo(video) {
     return true;
   }
   
-  // 2️⃣ Musik-Indikatoren im Titel (Soft Accept)
+  // Quality indicators in title
   const qualityIndicators = [
-    'official audio',
-    'official video',
-    'official music video',
-    'audio only',
-    'full song',
-    'hd audio',
-    'music video'
+    'official audio', 'official video', 'official music video',
+    'audio only', 'full song', 'hd audio', 'music video'
   ];
   
   const hasQualityIndicator = qualityIndicators.some(indicator => 
@@ -196,8 +142,7 @@ function isValidMusicVideo(video) {
     return true;
   }
   
-  // 3️⃣ Wenn nichts davon zutrifft: Reject
-  console.log(`  ⊗ Filtered: ${video.snippet.title.substring(0, 60)}... (no quality indicator)`);
+  console.log(`  Filtered: ${video.snippet.title.substring(0, 60)}... (no quality indicator)`);
   return false;
 }
 

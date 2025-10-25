@@ -323,14 +323,6 @@ function PlaylistViewer() {
     setSelectedTracks(newSelected);
   };
 
-  const handlePreviewStart = (track) => {
-    setPreviewingTrack(track.id);
-  };
-
-  const handlePreviewEnd = () => {
-    setPreviewingTrack(null);
-  };
-
   const handleExportToSpotify = async () => {
     console.log('Export to Spotify - Selected tracks:', Array.from(selectedTracks));
     console.log('All tracks:', playlist.tracks.map(t => t.id));
