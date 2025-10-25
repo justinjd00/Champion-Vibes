@@ -239,13 +239,13 @@ function PlaylistViewer() {
             
             // Wait a moment for the UI to update
             setTimeout(async () => {
-              alert('YouTube-Verbindung erfolgreich! Erstelle jetzt deine Playlist...');
+              alert('YouTube connection successful! Creating your playlist now...');
               
               // Get selected tracks from current playlist
               const selectedTracksList = playlist.tracks.filter(track => trackIds.has(track.id));
               
               if (selectedTracksList.length === 0) {
-                alert('Keine Tracks zum Exportieren gefunden.');
+                alert('No tracks found to export.');
                 localStorage.removeItem('pendingYouTubeExport');
                 return;
               }
@@ -274,17 +274,17 @@ function PlaylistViewer() {
                 const videosFound = result.playlist.videosFound;
                 const playlistUrl = result.playlist.url;
                 
-                alert(`✅ YouTube-Playlist erfolgreich erstellt!\n\n` +
+                alert(`✅ YouTube playlist created successfully!\n\n` +
                       `📋 Playlist: ${result.playlist.title}\n` +
-                      `🎵 Videos gefunden: ${videosFound}\n` +
-                      `✓ Videos hinzugefügt: ${videosAdded}\n\n` +
+                      `🎵 Videos found: ${videosFound}\n` +
+                      `✓ Videos added: ${videosAdded}\n\n` +
                       `🔗 YouTube Link: ${playlistUrl}\n\n` +
-                      `Die Playlist wird jetzt geöffnet...`);
+                      `Opening playlist now...`);
                 
                 // Open playlist
                 window.open(playlistUrl, '_blank');
               } else {
-                alert(`❌ YouTube Export fehlgeschlagen: ${result.error}`);
+                alert(`❌ YouTube export failed: ${result.error}`);
               }
               
               // Clean up
@@ -331,7 +331,7 @@ function PlaylistViewer() {
     console.log('Filtered tracks:', selectedTracksList);
     
     if (selectedTracksList.length === 0) {
-      alert('Bitte wähle mindestens einen Track aus!');
+      alert('Please select at least one track!');
       return;
     }
 
@@ -363,15 +363,15 @@ function PlaylistViewer() {
 
       if (response.ok) {
         const result = await response.json();
-        alert(`✅ ${selectedTracksList.length} Tracks erfolgreich zu Spotify exportiert!\n\nPlaylist: ${result.playlistName}\nSpotify Link: ${result.playlistUrl}`);
+        alert(`✅ ${selectedTracksList.length} tracks successfully exported to Spotify!\n\nPlaylist: ${result.playlistName}\nSpotify Link: ${result.playlistUrl}`);
       } else {
         const error = await response.json();
-        alert(`❌ Spotify Export fehlgeschlagen: ${error.message}`);
+        alert(`❌ Spotify export failed: ${error.message}`);
       }
       
     } catch (error) {
       console.error('Spotify export error:', error);
-      alert('❌ Fehler beim Export zu Spotify. Bitte versuche es erneut.');
+      alert('❌ Error exporting to Spotify. Please try again.');
     }
   };
 
@@ -382,26 +382,26 @@ function PlaylistViewer() {
     console.log('Filtered tracks:', selectedTracksList);
     
     if (selectedTracksList.length === 0) {
-      alert('Bitte wähle mindestens einen Track aus!');
+      alert('Please select at least one track!');
       return;
     }
 
-    // Filter nur YouTube-kompatible Songs (keine Spotify-Songs)
+    // Filter YouTube-compatible songs only (no Spotify songs)
     const youtubeCompatibleTracks = selectedTracksList.filter(track => 
       track.platform !== 'spotify'
     );
 
     if (youtubeCompatibleTracks.length === 0) {
-      alert('⚠️ Keine YouTube-kompatiblen Songs ausgewählt!\n\nDie ausgewählten Songs stammen alle von Spotify und können nicht zu YouTube exportiert werden.\n\nBitte wähle Songs aus, die von YouTube stammen.');
+      alert('⚠️ No YouTube-compatible songs selected!\n\nAll selected songs are from Spotify and cannot be exported to YouTube.\n\nPlease select songs from YouTube.');
       return;
     }
 
     if (youtubeCompatibleTracks.length < selectedTracksList.length) {
       const spotifyCount = selectedTracksList.length - youtubeCompatibleTracks.length;
       const confirmExport = window.confirm(
-        `⚠️ ${spotifyCount} Spotify-Song(s) werden übersprungen\n\n` +
-        `Nur ${youtubeCompatibleTracks.length} YouTube-kompatible Song(s) werden exportiert.\n\n` +
-        `Möchtest du fortfahren?`
+        `⚠️ ${spotifyCount} Spotify song(s) will be skipped\n\n` +
+        `Only ${youtubeCompatibleTracks.length} YouTube-compatible song(s) will be exported.\n\n` +
+        `Do you want to continue?`
       );
       
       if (!confirmExport) {
@@ -410,9 +410,9 @@ function PlaylistViewer() {
     }
 
     try {
-      console.log(`🎵 Starte YouTube-Export mit ${youtubeCompatibleTracks.length} Song(s)...`);
+      console.log(`Starting YouTube export with ${youtubeCompatibleTracks.length} song(s)...`);
       
-      // Verwende die neue Export-API mit nur YouTube-kompatiblen Songs
+      // Use new export API with YouTube-compatible songs only
       const response = await fetch('http://localhost:8001/api/export/youtube/create-full-playlist', {
         method: 'POST',
         credentials: 'include',
@@ -433,7 +433,7 @@ function PlaylistViewer() {
 
       if (response.status === 401) {
         // User is not authenticated - save state and redirect
-        console.log('❌ Nicht authentifiziert - leite zur Anmeldung weiter...');
+        console.log('Not authenticated - redirecting to login...');
         localStorage.setItem('pendingYouTubeExport', JSON.stringify({
           playlistTitle: playlist.title,
           playlistDescription: playlist.description,
@@ -442,7 +442,7 @@ function PlaylistViewer() {
           timestamp: Date.now()
         }));
         
-        alert('Du musst dich zuerst mit YouTube verbinden. Du wirst weitergeleitet...');
+        alert('You need to connect with YouTube first. You will be redirected...');
         setTimeout(() => {
           window.location.href = 'http://localhost:8001/api/auth/youtube/login';
         }, 1000);
@@ -454,12 +454,12 @@ function PlaylistViewer() {
         const videosFound = result.playlist.videosFound;
         const playlistUrl = result.playlist.url;
         
-        alert(`✅ YouTube-Playlist erfolgreich erstellt!\n\n` +
+        alert(`✅ YouTube playlist created successfully!\n\n` +
               `📋 Playlist: ${result.playlist.title}\n` +
-              `🎵 Videos gefunden: ${videosFound}\n` +
-              `✓ Videos hinzugefügt: ${videosAdded}\n\n` +
+              `🎵 Videos found: ${videosFound}\n` +
+              `✓ Videos added: ${videosAdded}\n\n` +
               `🔗 YouTube Link: ${playlistUrl}\n\n` +
-              `Die Playlist wird jetzt geöffnet...`);
+              `Opening playlist now...`);
         
         // Clear any pending export
         localStorage.removeItem('pendingYouTubeExport');
@@ -467,12 +467,12 @@ function PlaylistViewer() {
         // Open playlist in new tab
         window.open(playlistUrl, '_blank');
       } else {
-        alert(`❌ YouTube Export fehlgeschlagen: ${result.error || 'Unbekannter Fehler'}\n\n${result.details || ''}`);
+        alert(`❌ YouTube export failed: ${result.error || 'Unknown error'}\n\n${result.details || ''}`);
       }
       
     } catch (error) {
       console.error('YouTube export error:', error);
-      alert('❌ Fehler beim Export zu YouTube. Bitte versuche es erneut.');
+      alert('❌ Error exporting to YouTube. Please try again.');
     }
   };
 
@@ -587,7 +587,7 @@ function PlaylistViewer() {
         </TrackList>
 
         <Subtitle style={{ marginTop: '20px', fontSize: '0.85rem', opacity: 0.8 }}>
-          💡 <strong>Tipp:</strong> Beim YouTube-Export werden nur YouTube-Songs (mit <FaYoutube style={{ display: 'inline', marginLeft: '3px', marginRight: '3px' }} /> YT Badge) verwendet. Spotify-Songs werden automatisch übersprungen.
+          💡 <strong>Tip:</strong> When exporting to YouTube, only YouTube songs (with <FaYoutube style={{ display: 'inline', marginLeft: '3px', marginRight: '3px' }} /> YT badge) are used. Spotify songs are automatically skipped.
         </Subtitle>
 
         <ExportButtons>

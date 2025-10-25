@@ -250,7 +250,7 @@ function PlaylistGenerator() {
 
   const handleGenerate = async () => {
     if (!selectedChampion || !selectedRole) {
-      setError('Bitte wähle einen Champion und eine Rolle aus!');
+      setError('Please select a champion and a role!');
       return;
     }
 
@@ -268,7 +268,7 @@ function PlaylistGenerator() {
           champion: selectedChampion.value,
           role: selectedRole.value,
           playstyle: 'balanced',
-          musicTags: selectedTags // 🎵 Sende ausgewählte Music Tags
+          musicTags: selectedTags
         })
       });
 
@@ -284,7 +284,7 @@ function PlaylistGenerator() {
       localStorage.setItem('currentPlaylist', JSON.stringify(data.playlist));
     } catch (err) {
       console.error('Playlist generation error:', err);
-      setError('Fehler beim Generieren der Playlist. Bitte versuche es erneut.');
+      setError('Error generating playlist. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -344,9 +344,9 @@ function PlaylistGenerator() {
         </FormSection>
 
         <FormSection>
-          <Label>🎵 Music Tags (Optional - für bessere Filterung)</Label>
+          <Label>🎵 Music Tags (Optional - for better filtering)</Label>
           <Subtitle style={{ fontSize: '0.9rem', marginBottom: '10px', marginTop: '5px' }}>
-            Wähle Tags aus, um die Musik-Suche zu verbessern
+            Select tags to improve music search
           </Subtitle>
           <TagGrid>
             {musicTags.map(tag => (
@@ -363,7 +363,7 @@ function PlaylistGenerator() {
           </TagGrid>
           {selectedTags.length > 0 && (
             <Subtitle style={{ fontSize: '0.85rem', marginTop: '10px', color: '#C89B3C' }}>
-              ✅ {selectedTags.length} Tag(s) ausgewählt
+              ✅ {selectedTags.length} Tag(s) selected
             </Subtitle>
           )}
         </FormSection>

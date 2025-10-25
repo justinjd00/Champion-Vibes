@@ -46,7 +46,7 @@ const Message = styled.p`
 
 function YouTubeCallback() {
   const [status, setStatus] = useState('processing'); // processing, success, error
-  const [message, setMessage] = useState('YouTube-Verbindung wird verarbeitet...');
+  const [message, setMessage] = useState('Processing YouTube connection...');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -61,14 +61,14 @@ function YouTubeCallback() {
 
       if (error) {
         setStatus('error');
-        setMessage(`Fehler bei der YouTube-Authentifizierung: ${error}`);
+        setMessage(`Error with YouTube authentication: ${error}`);
         setTimeout(() => navigate('/profile'), 3000);
         return;
       }
 
       if (!code) {
         setStatus('error');
-        setMessage('Kein Autorisierungscode erhalten. Bitte versuche es erneut.');
+        setMessage('No authorization code received. Please try again.');
         setTimeout(() => navigate('/profile'), 3000);
         return;
       }
@@ -93,13 +93,13 @@ function YouTubeCallback() {
 
         if (response.ok && result.success) {
           setStatus('success');
-          setMessage('✅ YouTube erfolgreich verbunden!');
+          setMessage('✅ YouTube connected successfully!');
           
           // Check if there's a pending export
           const pendingExport = localStorage.getItem('pendingYouTubeExport');
           
           if (pendingExport) {
-            setMessage('✅ YouTube verbunden! Erstelle jetzt deine Playlist...');
+            setMessage('✅ YouTube connected! Creating your playlist now...');
             
             // Wait a moment, then redirect to playlist page
             setTimeout(() => {
@@ -115,13 +115,13 @@ function YouTubeCallback() {
           }
           
         } else {
-          throw new Error(result.error || 'Unbekannter Fehler');
+          throw new Error(result.error || 'Unknown error');
         }
 
       } catch (error) {
         console.error('Error processing callback:', error);
         setStatus('error');
-        setMessage(`Fehler beim Verarbeiten der Authentifizierung: ${error.message}`);
+        setMessage(`Error processing authentication: ${error.message}`);
         setTimeout(() => navigate('/profile?error=youtube_auth_failed'), 3000);
       }
     };
@@ -148,9 +148,9 @@ function YouTubeCallback() {
         </IconWrapper>
 
         <Title>
-          {status === 'processing' && 'Verarbeite...'}
-          {status === 'success' && 'Erfolgreich!'}
-          {status === 'error' && 'Fehler'}
+          {status === 'processing' && 'Processing...'}
+          {status === 'success' && 'Success!'}
+          {status === 'error' && 'Error'}
         </Title>
 
         <Message>{message}</Message>

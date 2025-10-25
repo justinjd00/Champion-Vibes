@@ -211,7 +211,7 @@ function Header() {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // 🎵 Check YouTube connection status on mount and periodically
+  // Check YouTube connection status on mount and periodically
   useEffect(() => {
     const checkYouTubeStatus = async () => {
       try {
