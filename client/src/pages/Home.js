@@ -121,46 +121,6 @@ const FeatureDescription = styled.p`
   opacity: 0.9;
 `;
 
-const StatsSection = styled(motion.section)`
-  max-width: 800px;
-  width: 100%;
-  text-align: center;
-`;
-
-const StatsTitle = styled.h2`
-  font-family: ${props => props.theme.fonts.primary};
-  font-size: 2.5rem;
-  color: ${props => props.theme.colors.primary};
-  margin-bottom: 40px;
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 30px;
-  margin-bottom: 40px;
-`;
-
-const StatCard = styled(motion.div)`
-  background: rgba(10, 20, 40, 0.6);
-  border: 1px solid ${props => props.theme.colors.primary};
-  border-radius: 15px;
-  padding: 30px 20px;
-  backdrop-filter: blur(10px);
-`;
-
-const StatNumber = styled.div`
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: ${props => props.theme.colors.secondary};
-  margin-bottom: 10px;
-`;
-
-const StatLabel = styled.div`
-  color: ${props => props.theme.colors.text};
-  font-weight: 500;
-`;
-
 function Home() {
   const features = [
     {
@@ -178,13 +138,6 @@ function Home() {
       title: "2-3 Hour Playlists",
       description: "Get extended playlists perfect for long gaming sessions, streaming, or just enjoying your favorite music."
     }
-  ];
-
-  const stats = [
-    { number: "150+", label: "Champions Supported" },
-    { number: "10K+", label: "Playlists Generated" },
-    { number: "2-3hrs", label: "Average Duration" },
-    { number: "99%", label: "User Satisfaction" }
   ];
 
   return (
@@ -247,34 +200,6 @@ function Home() {
         </FeaturesGrid>
       </FeaturesSection>
 
-      <StatsSection
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 1.4 }}
-      >
-        <StatsTitle>Join the Community</StatsTitle>
-        <StatsGrid>
-          {stats.map((stat, index) => (
-            <StatCard
-              key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 1.6 + index * 0.1 }}
-            >
-              <StatNumber>{stat.number}</StatNumber>
-              <StatLabel>{stat.label}</StatLabel>
-            </StatCard>
-          ))}
-        </StatsGrid>
-        <CTAButton
-          to="/generate"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <FaHeart />
-          Start Your Journey
-        </CTAButton>
-      </StatsSection>
     </HomeContainer>
   );
 }
