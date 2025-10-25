@@ -63,7 +63,7 @@ class MusicAlgorithmService {
   // Main algorithm to generate playlist
   async generatePlaylist(champion, role, playstyle = 'balanced', musicTags = []) {
     try {
-      console.log(`🎵 Generating playlist for ${champion.name} (${role}) with ${playstyle} playstyle${musicTags.length > 0 ? ` [Tags: ${musicTags.join(', ')}]` : ''}`);
+      console.log(` Generating playlist for ${champion.name} (${role}) with ${playstyle} playstyle${musicTags.length > 0 ? ` [Tags: ${musicTags.join(', ')}]` : ''}`);
       
       // Get champion analysis
       const championAnalysis = RiotApiService.analyzeChampionForMusic(champion);
@@ -80,7 +80,7 @@ class MusicAlgorithmService {
       // 🎵 Integriere User-selected Music Tags
       if (musicTags.length > 0) {
         musicProfile.userTags = musicTags;
-        console.log(`  🏷️ User selected tags: ${musicTags.join(', ')}`);
+        console.log(`   User selected tags: ${musicTags.join(', ')}`);
       }
       
       // Generate search queries (now with user tags)
@@ -222,15 +222,12 @@ class MusicAlgorithmService {
     };
   }
 
-  // Generate search queries based on music profile
   generateSearchQueries(musicProfile) {
     const queries = [];
     
-    // 🏷️ PRIORITÄRE USER TAGS - wenn vorhanden, verwende sie zuerst!
     if (musicProfile.userTags && musicProfile.userTags.length > 0) {
-      console.log(`  🎯 Using user-selected tags for queries: ${musicProfile.userTags.join(', ')}`);
+      console.log(`   Using user-selected tags for queries: ${musicProfile.userTags.join(', ')}`);
       
-      // Erstelle Queries basierend auf User Tags
       musicProfile.userTags.forEach(tag => {
         queries.push(`${tag} gaming music`);
         queries.push(`${tag} ${musicProfile.mood}`);
@@ -238,7 +235,6 @@ class MusicAlgorithmService {
         queries.push(`best ${tag} music`);
       });
       
-      // Kombiniere User Tags mit Mood/Energy
       if (musicProfile.userTags.length >= 2) {
         const primaryTag = musicProfile.userTags[0];
         const secondaryTag = musicProfile.userTags[1];
@@ -246,10 +242,8 @@ class MusicAlgorithmService {
       }
     }
     
-    // 🎯 OPTIMIERT: Hochwertige Gaming-Musik Keywords
     const qualityKeywords = ['NCS', 'no copyright', 'official audio', 'best gaming music'];
     
-    // 🎮 Genre-spezifische Kanäle
     const genreChannels = {
       'electronic': ['NCS', 'Monstercat', 'Trap Nation', 'electronic gaming'],
       'rock': ['epic rock', 'gaming rock', 'rock gaming music'],
@@ -263,7 +257,6 @@ class MusicAlgorithmService {
     
     const channelKeywords = genreChannels[musicProfile.genre] || ['gaming music'];
     
-    // 🔥 BESTE Queries: Genre + Mood + NCS/Quality
     channelKeywords.forEach(channel => {
       queries.push(`${channel} ${musicProfile.mood}`);
       queries.push(`${channel} ${musicProfile.energy} energy`);
@@ -274,11 +267,9 @@ class MusicAlgorithmService {
     queries.push(`${musicProfile.genre} ${musicProfile.mood} no copyright`);
     queries.push(`best ${musicProfile.genre} gaming music`);
     
-    // League of Legends spezifisch
     queries.push(`League of Legends ${musicProfile.genre} music`);
     queries.push('LoL gaming music');
     
-    // Energy-Level spezifisch - OPTIMIERT
     if (musicProfile.energy === 'extreme') {
       queries.push('extreme gaming music NCS');
       queries.push('intense battle music epic');
@@ -299,18 +290,15 @@ class MusicAlgorithmService {
       queries.push('gaming focus music Monstercat');
     }
     
-    // Theme-basiert (nur die besten)
     if (musicProfile.theme && musicProfile.theme !== 'balanced') {
       queries.push(`${musicProfile.theme} epic gaming music`);
     }
     
-    // Instrument-based (nur für spezielle Genres)
     if (musicProfile.instruments && musicProfile.instruments.length > 0) {
       const mainInstrument = musicProfile.instruments[0];
       queries.push(`${mainInstrument} ${musicProfile.genre} gaming`);
     }
     
-    // Entferne Duplikate und limitiere auf die besten 12 Queries
     return [...new Set(queries)].slice(0, 12);
   }
 

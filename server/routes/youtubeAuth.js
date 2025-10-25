@@ -70,7 +70,6 @@ router.get('/youtube', (req, res) => {
   res.redirect('https://accounts.google.com/o/oauth2/v2/auth?' + authQueryParameters.toString());
 });
 
-// Handle YouTube callback
 router.get('/youtube/callback', async (req, res) => {
   const code = req.query.code;
   const state = req.query.state;
@@ -78,7 +77,6 @@ router.get('/youtube/callback', async (req, res) => {
 
   console.log('YouTube callback received:', { code: code ? 'present' : 'missing', state, storedState });
 
-  // For development: Skip state validation if no stored state
   if (!storedState) {
     console.log('No stored state found, proceeding with authentication...');
   } else if (!state || state !== storedState) {
@@ -148,23 +146,22 @@ router.get('/youtube/me', async (req, res) => {
       });
     }
 
-    // 🔄 Check if token is expired or about to expire (within 5 minutes)
     const tokenExpiry = req.session.youtubeTokenExpiry || 0;
     const now = Date.now();
     const fiveMinutes = 5 * 60 * 1000;
 
     if (now >= tokenExpiry - fiveMinutes) {
-      console.log('🔄 Token expired or expiring soon, refreshing...');
+      console.log(' Token expired or expiring soon, refreshing...');
       const refreshed = await refreshYouTubeToken(req);
       if (!refreshed) {
-        console.log('❌ Token refresh failed, user needs to re-authenticate');
+        console.log(' Token refresh failed, user needs to re-authenticate');
         return res.status(401).json({ 
           success: false,
           error: 'YouTube token expired, please reconnect',
           needsAuth: true
         });
       }
-      console.log('✅ Token refreshed successfully');
+      console.log(' Token refreshed successfully');
     }
 
     const response = await axios.get('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
@@ -237,14 +234,10 @@ router.post('/youtube/create-playlist', async (req, res) => {
     const playlist = playlistResponse.data;
     const playlistId = playlist.id;
 
-    // Add tracks to playlist (simulate adding videos)
     let addedTracks = 0;
     if (tracks && tracks.length > 0) {
       for (const track of tracks) {
         try {
-          // For demo purposes, we'll simulate adding videos
-          // In a real implementation, you would search for actual YouTube videos
-          // and add them to the playlist using the YouTube Data API
           console.log(`Would add track: ${track.title} by ${track.artist}`);
           addedTracks++;
         } catch (trackError) {

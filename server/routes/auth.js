@@ -91,7 +91,6 @@ router.get('/spotify/callback', async (req, res) => {
     req.session.spotifyUser = user;
     req.session.tokenExpiry = Date.now() + (expires_in * 1000);
 
-    // Redirect to frontend with success
     res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/profile?spotify_connected=true`);
 
   } catch (error) {
@@ -100,16 +99,13 @@ router.get('/spotify/callback', async (req, res) => {
   }
 });
 
-// Get current user's Spotify profile
 router.get('/spotify/me', async (req, res) => {
   try {
     if (!req.session.spotifyAccessToken) {
       return res.status(401).json({ error: 'Not authenticated with Spotify' });
     }
 
-    // Check if token is expired
     if (Date.now() >= req.session.tokenExpiry) {
-      // Try to refresh token
       const refreshed = await refreshSpotifyToken(req);
       if (!refreshed) {
         return res.status(401).json({ error: 'Spotify token expired' });

@@ -87,7 +87,6 @@ function generateSearchStrategies(title, artist) {
   ];
 }
 
-// Filter out unwanted videos (shorts, covers, tutorials, etc.)
 function isValidMusicVideo(video) {
   const title = video.snippet.title.toLowerCase();
   const channelTitle = video.snippet.channelTitle.toLowerCase();
@@ -128,7 +127,6 @@ function isValidMusicVideo(video) {
     return true;
   }
   
-  // Quality indicators in title
   const qualityIndicators = [
     'official audio', 'official video', 'official music video',
     'audio only', 'full song', 'hd audio', 'music video'
@@ -146,10 +144,7 @@ function isValidMusicVideo(video) {
   return false;
 }
 
-/**
- * 🎯 SMARTER ALGORITHMUS: Multi-Taktik-Suche
- * Kombiniert RELEVANZ + QUALITÄT + VARIETÄT
- */
+
 async function searchYouTubeVideo(title, artist, accessToken) {
   try {
     console.log(`\n🔍 Searching: "${title}" by "${artist}"`);
@@ -157,20 +152,18 @@ async function searchYouTubeVideo(title, artist, accessToken) {
     const strategies = generateSearchStrategies(title, artist);
     const allFoundVideos = [];
     
-    // 🎲 Versuche jede Strategie parallel (für maximale Varietät)
     for (const strategy of strategies) {
       try {
         console.log(`  📋 Trying: ${strategy.name}...`);
         
-        // Baue API-Parameter
         const searchParams = {
           part: 'snippet',
           q: strategy.query,
           type: 'video',
-          maxResults: 5,                 // Hole mehrere für Filterung
-          videoCategoryId: '10',         // 🎵 MUSIK-KATEGORIE (wichtigster Filter!)
+          maxResults: 5,
+          videoCategoryId: '10',
           safeSearch: 'none',
-          ...strategy.params              // Füge strategie-spezifische Parameter hinzu
+          ...strategy.params
         };
         
         const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
@@ -200,51 +193,44 @@ async function searchYouTubeVideo(title, artist, accessToken) {
             
             // ⚡ OPTIMIERUNG: Wenn "Best Match" oder "Topic" einen Treffer hat, nimm ihn sofort
             if (strategy.name === 'Best Match' || strategy.name === 'Topic') {
-              console.log(`  🎯 Using ${strategy.name} result immediately`);
+              console.log(`  Using ${strategy.name} result immediately`);
               return allFoundVideos[allFoundVideos.length - 1];
             }
           } else {
-            console.log(`  ⚠️ [${strategy.name}] No valid videos after filtering`);
+            console.log(`  [${strategy.name}] No valid videos after filtering`);
           }
         } else {
-          console.log(`  ⚠️ [${strategy.name}] No results`);
+          console.log(` [${strategy.name}] No results`);
         }
         
       } catch (searchError) {
-        console.error(`  ❌ [${strategy.name}] Error:`, searchError.message);
+        console.error(`  [${strategy.name}] Error:`, searchError.message);
         continue;
       }
     }
-    
-    // Wenn wir hier sind: Nimm das beste gefundene Video (erstes in der Liste)
     if (allFoundVideos.length > 0) {
       const bestVideo = allFoundVideos[0];
-      console.log(`  🏆 Best result: ${bestVideo.title.substring(0, 60)}... [${bestVideo.strategy}]`);
+      console.log(`Best result: ${bestVideo.title.substring(0, 60)}... [${bestVideo.strategy}]`);
       return bestVideo;
     }
     
-    // Wenn alle Strategien fehlschlagen
-    console.log(`  ❌ No valid video found for: ${title} by ${artist}`);
+    console.log(`   No valid video found for: ${title} by ${artist}`);
     return null;
     
   } catch (error) {
-    console.error(`❌ Fatal error searching for ${title} by ${artist}:`, error.response?.data || error.message);
+    console.error(` Fatal error searching for ${title} by ${artist}:`, error.response?.data || error.message);
     return null;
   }
 }
 
-/**
- * Erstellt eine YouTube-Playlist mit Videos
- * POST /api/export/youtube/create-full-playlist
- */
+
 router.post('/youtube/create-full-playlist', async (req, res) => {
   try {
     const { playlistTitle, playlistDescription, tracks } = req.body;
     
-    console.log(`📝 Creating YouTube playlist: ${playlistTitle}`);
-    console.log(`🎵 Number of tracks: ${tracks.length}`);
+    console.log(` Creating YouTube playlist: ${playlistTitle}`);
+    console.log(` Number of tracks: ${tracks.length}`);
 
-    // Schritt 1: Prüfe YouTube-Authentifizierung
     if (!req.session.youtubeAccessToken) {
       return res.status(401).json({
         success: false,
@@ -253,16 +239,15 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
       });
     }
 
-    // 🔄 Auto-refresh wenn Token abgelaufen oder bald abläuft (5 Minuten)
     const tokenExpiry = req.session.youtubeTokenExpiry || 0;
     const now = Date.now();
     const fiveMinutes = 5 * 60 * 1000;
 
     if (now >= tokenExpiry - fiveMinutes) {
-      console.log('🔄 Token expired or expiring soon, refreshing...');
+      console.log(' Token expired or expiring soon, refreshing...');
       const refreshed = await refreshYouTubeToken(req);
       if (!refreshed) {
-        console.log('❌ Token refresh failed, user needs to re-authenticate');
+        console.log(' Token refresh failed, user needs to re-authenticate');
         return res.status(401).json({
           success: false,
           error: 'YouTube token expired, please reconnect',
@@ -271,18 +256,12 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
       }
     }
 
-      // Schritt 2: Suche YouTube-Videos für jeden Track (SMART ALGORITHMUS)
-      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      console.log('🎯 SMART SEARCH: Multi-Taktik-Algorithmus');
-      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-      
       const videoPromises = tracks.map(track =>
         searchYouTubeVideo(track.title, track.artist, req.session.youtubeAccessToken)
       );
       const videos = await Promise.all(videoPromises);
       const validVideos = videos.filter(v => v !== null);
 
-      // 🔒 Entferne Duplikate basierend auf videoId
       const uniqueVideos = [];
       const seenVideoIds = new Set();
       
@@ -295,7 +274,7 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
         }
       }
 
-      console.log(`✅ Found ${uniqueVideos.length} unique videos out of ${tracks.length} tracks (${validVideos.length - uniqueVideos.length} duplicates removed)`);
+      console.log(` Found ${uniqueVideos.length} unique videos out of ${tracks.length} tracks (${validVideos.length - uniqueVideos.length} duplicates removed)`);
 
     if (uniqueVideos.length === 0) {
       return res.status(400).json({
@@ -305,7 +284,7 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
     }
 
     // Schritt 3: Erstelle YouTube-Playlist
-    console.log('📋 Creating YouTube playlist...');
+    console.log(' Creating YouTube playlist...');
     const playlistResponse = await axios.post(
       'https://www.googleapis.com/youtube/v3/playlists?part=snippet,status',
       {
@@ -326,10 +305,9 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
     );
 
     const playlistId = playlistResponse.data.id;
-    console.log(`✅ Playlist created: ${playlistId}`);
+    console.log(` Playlist created: ${playlistId}`);
 
-    // Schritt 4: Füge Videos zur Playlist hinzu
-    console.log('🎬 Adding videos to playlist...');
+    console.log(' Adding videos to playlist...');
     let addedCount = 0;
     for (const video of uniqueVideos) {
       try {
@@ -358,7 +336,7 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
       }
     }
 
-    console.log(`🎉 Successfully added ${addedCount} videos to playlist`);
+    console.log(` Successfully added ${addedCount} videos to playlist`);
 
     res.json({
       success: true,
@@ -377,7 +355,7 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error creating YouTube playlist:', error.response?.data || error.message);
+    console.error(' Error creating YouTube playlist:', error.response?.data || error.message);
     
     // Check if token is expired
     if (error.response?.status === 401) {
@@ -396,15 +374,12 @@ router.post('/youtube/create-full-playlist', async (req, res) => {
   }
 });
 
-/**
- * Sucht YouTube-Videos für Tracks (ohne Playlist zu erstellen)
- * POST /api/export/youtube/search-videos
- */
+
 router.post('/youtube/search-videos', async (req, res) => {
   try {
     const { tracks } = req.body;
     
-    console.log(`🔍 Searching YouTube videos for ${tracks.length} tracks`);
+    console.log(` Searching YouTube videos for ${tracks.length} tracks`);
 
     const videoPromises = tracks.map(track => 
       searchYouTubeVideo(track.title, track.artist)
@@ -428,17 +403,13 @@ router.post('/youtube/search-videos', async (req, res) => {
   }
 });
 
-/**
- * Erstellt eine öffentliche YouTube-Playlist-URL (ohne Account)
- * POST /api/export/youtube/generate-playlist-url
- */
+
 router.post('/youtube/generate-playlist-url', async (req, res) => {
   try {
     const { tracks } = req.body;
     
-    console.log(`🔗 Generating YouTube playlist URL for ${tracks.length} tracks`);
+    console.log(` Generating YouTube playlist URL for ${tracks.length} tracks`);
 
-    // Suche Videos
     const videoPromises = tracks.map(track => 
       searchYouTubeVideo(track.title, track.artist)
     );
@@ -452,7 +423,6 @@ router.post('/youtube/generate-playlist-url', async (req, res) => {
       });
     }
 
-    // Erstelle eine URL, die alle Videos als Playlist abspielt
     const videoIds = validVideos.map(v => v.videoId).join(',');
     const playlistUrl = `https://www.youtube.com/watch_videos?video_ids=${videoIds}`;
 
