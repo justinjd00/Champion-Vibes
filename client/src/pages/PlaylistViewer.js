@@ -561,11 +561,7 @@ function PlaylistViewer() {
               <TrackDuration>{Math.floor(track.duration / 60000)}:{(Math.floor(track.duration / 1000) % 60).toString().padStart(2, '0')}</TrackDuration>
 
               <TrackActions>
-                <SongPreview
-                  track={track}
-                  onPreviewStart={() => handlePreviewStart(track)}
-                  onPreviewEnd={handlePreviewEnd}
-                />
+                <SongPreview track={track} />
                 
                 <SelectButton
                   selected={selectedTracks.has(track.id)}
